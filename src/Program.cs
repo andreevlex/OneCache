@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Utility.CommandLine;
 
 namespace OneCache
@@ -26,11 +27,13 @@ namespace OneCache
                 ShowUsage();                
             }
 
+            CheckProcesses();
+
             Arguments.Populate();
                        
             CacheManager plat = new CacheManager();
 
-            if(Remove == "all" || string.IsNullOrEmpty(Remove))
+            if(Remove == "all")
             {
                 if(Age != 0)
                 {
@@ -69,6 +72,15 @@ namespace OneCache
             Console.WriteLine("\tsettings - удалить временные файлы настроек");
             Console.WriteLine("-o, --older <days> - удалить времменные файлы платформы старше значения параметра days");
             Environment.Exit(0);
+        }
+
+        static void CheckProcesses()
+        {
+            if(!ProcessInfo.NoRunningPlatformProcesses())
+            {
+                Console.WriteLine("Есть запущенные процессы платформы. Удаление невозможно");
+                Environment.Exit(1);
+            }
         }
 
         static void NoCommand()
