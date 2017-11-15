@@ -13,8 +13,7 @@ namespace OneCache
         public CacheManager()
         {
             Caches = new Dictionary<TypeCache, List<Cache>>();
-            GetMetadataCache();
-            GetSettingsCache();
+            FindCache();
         }
 
         List<Cache> ReadCache(string directory)
@@ -45,20 +44,18 @@ namespace OneCache
             return Caches[typecache];
         }
 
-        private void GetMetadataCache()
+        private void FindCache()
         {
-            var value = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-            var directory = Path.Combine(value, "1C");
+            var values = Enum.GetValues(typeof(TypeCache)).Cast<TypeCache>();
 
-            Caches.Add(TypeCache.Metadata, ReadCache(directory));
-        }
+            foreach (var value in values)
+            {
+                var env = value.GetAttribute<LocationAttribute>();
+                var local_data = Environment.GetEnvironmentVariable(env.Location);
+                var directory = Path.Combine(local_data, "1C");
 
-        private void GetSettingsCache()
-        {
-            var local_data = Environment.GetEnvironmentVariable("APPDATA");
-            var directory = Path.Combine(local_data, "1C");
-
-            Caches.Add(TypeCache.Settings, ReadCache(directory));
+                Caches.Add(value, ReadCache(directory));
+            }                       
         }
         
         private void RemoveInner(List<Cache> list)
