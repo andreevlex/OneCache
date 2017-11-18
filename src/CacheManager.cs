@@ -8,11 +8,11 @@ namespace OneCache
 {
     public class CacheManager
     {
-        Dictionary<TypeCache, List<Cache>> Caches;
+        private Dictionary<TypeCache, List<Cache>> Caches = new Dictionary<TypeCache, List<Cache>>();
+        private Action<Cache> DeleteCache = delegate(Cache cache) { Directory.Delete(cache.Path, true); };
 
         public CacheManager()
         {
-            Caches = new Dictionary<TypeCache, List<Cache>>();
             FindCache();
         }
 
@@ -57,19 +57,11 @@ namespace OneCache
                 Caches.Add(value, ReadCache(directory));
             }                       
         }
-        
-        private void RemoveInner(List<Cache> list)
-        {
-            foreach (var cache in list)
-            {
-                Directory.Delete(cache.Path, true);
-            }
-        }
-
+       
         public void Remove(TypeCache typecache)
         {
             var current = Caches[typecache];
-            RemoveInner(current);
+            current.ForEach(DeleteCache);
             current.Clear();
         }
 
@@ -94,7 +86,7 @@ namespace OneCache
             var current = Caches[typecache];
 
             var find_caches = current.Where(p => p.Age > age).ToList();
-            RemoveInner(find_caches);           
+            find_caches.ForEach(DeleteCache);          
         }
     }
 }
