@@ -11,9 +11,30 @@ namespace OneCache
         private Dictionary<TypeCache, List<Cache>> Caches = new Dictionary<TypeCache, List<Cache>>();
         private Action<Cache> DeleteCache = delegate(Cache cache) { Directory.Delete(cache.Path, true); };
 
-        public CacheManager()
+        public bool Verbose { get; set; } = false;
+        
+        private static string PrettySize(long value)
         {
-            FindCache();
+            double sizeInKb = value / 1024d;
+
+            if (value == 0)
+                return string.Format("{0:0.0} B", value);
+            else if (sizeInKb < 1000)
+                return string.Format("{0:0.0} KB", sizeInKb);
+            else if (sizeInKb < 1000000)
+                return string.Format("{0:0.0} MB", sizeInKb / 1024d);
+            else
+                return string.Format("{0:0.0} GB", sizeInKb / (1024d * 1024d));
+        }
+
+        private static void PrintTable(Dictionary<TypeCache, long> stat)
+        {
+            Console.WriteLine("Cache\tSize");
+           
+            foreach (var KeyValue in stat)
+            {
+                Console.WriteLine("{0}\t{1}", KeyValue.Key, PrettySize(KeyValue.Value));
+            }
         }
 
         List<Cache> ReadCache(string directory)
@@ -35,7 +56,7 @@ namespace OneCache
                     cache.Add(new Cache() { Path = dir, UUID = Path.GetFileName(dir), Size = Cache.GetDirectorySize(dir), Age = Cache.GetAge(dir) });
                 }
             }
-
+            
             return cache;
         }
 
@@ -44,18 +65,30 @@ namespace OneCache
             return Caches[typecache];
         }
 
-        private void FindCache()
+        public void FindCache()
         {
             var values = Enum.GetValues(typeof(TypeCache)).Cast<TypeCache>();
-
-            foreach (var value in values)
+                      
+            foreach (var typecache in values)
             {
-                var env = value.GetAttribute<LocationAttribute>();
+                var env = typecache.GetAttribute<LocationAttribute>();
                 var local_data = Environment.GetEnvironmentVariable(env.Location);
                 var directory = Path.Combine(local_data, "1C");
 
-                Caches.Add(value, ReadCache(directory));
-            }                       
+                Caches.Add(typecache, ReadCache(directory));
+            }
+
+            if (Verbose)
+            {
+                Dictionary<TypeCache, long> stat = new Dictionary<TypeCache, long>();
+
+                foreach(var KeyValue in Caches)
+                {
+                    stat.Add(KeyValue.Key, KeyValue.Value.Sum<Cache>(c => c.Size));
+                }
+
+                PrintTable(stat);
+            }
         }
        
         public void Remove(TypeCache typecache)

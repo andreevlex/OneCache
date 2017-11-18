@@ -15,8 +15,11 @@ namespace OneCache
         [Argument('o', "older")]
         private static int Age { get; set; }
 
+        [Argument('v', "verbose")]
+        private static bool Verbose { get; set; }
+
         [Operands]
-        private static string[] Operands { get; set; }
+        private static List<string> Operands { get; set; }
 
         #endregion Private Properties
 
@@ -32,7 +35,9 @@ namespace OneCache
             Arguments.Populate();
                        
             CacheManager plat = new CacheManager();
-
+            plat.Verbose = Verbose;
+            plat.FindCache();
+                        
             if(Remove == "all")
             {
                 if(Age != 0)
