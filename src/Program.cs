@@ -39,24 +39,19 @@ namespace OneCache
                 {
                     plat.RemoveToAge(Age);
                 }
-
-                plat.RemoveAll();
+                else
+                {
+                    plat.RemoveAll();
+                }
+                
             } else if(Remove == "metadata")
             {
-                if (Age != 0)
-                {
-                    plat.RemoveToAge(TypeCache.Metadata, Age);
-                }
+                RemoveCache(plat, TypeCache.Metadata);
 
-                plat.Remove(TypeCache.Metadata);
             } else if (Remove == "settings")
             {
-                if (Age != 0)
-                {
-                    plat.RemoveToAge(TypeCache.Settings, Age);
-                }
+                RemoveCache(plat, TypeCache.Settings);
 
-                plat.Remove(TypeCache.Settings);
             } else
             {
                 NoCommand();
@@ -87,6 +82,18 @@ namespace OneCache
         {
             Console.WriteLine("Неверная команда");
             Environment.Exit(1);
+        }
+
+        static void RemoveCache(CacheManager manager, TypeCache typecache)
+        {
+            if (Age != 0)
+            {
+                manager.RemoveToAge(typecache, Age);
+            }
+            else
+            {
+                manager.Remove(typecache);
+            }
         }
     }
 }
